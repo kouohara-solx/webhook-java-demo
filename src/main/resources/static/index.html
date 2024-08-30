@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slack Webhook設定</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+        }
+        input[type="text"], button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .input-pair {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .input-pair input {
+            margin-right: 5px;
+            flex:2;
+        }
+
+        #add-input {
+            margin-top: 5px;
+        }
+        .delete-button {
+            margin-left: 5px;
+            flex:1;
+        }
+    </style>
+</head>
+<body>
+<h1>Webhook Caller</h1>
+
+<h2>Webhook URL</h2>
+<input type="text" id="webhookUrl" placeholder="https://hooks.slack.com/services/...">
+
+<h2>JSONテンプレート</h2>
+<textarea id="jsonTemplate"></textarea>
+
+<h2>変数設定</h2>
+<div id="input-container">
+    <div class="input-pair">
+        <input type="text" class="key" placeholder="Key">
+        <input type="text" class="value" placeholder="Value">
+        <button class="delete-button" disabled>削除</button>
+    </div>
+</div>
+<button id="add-input">入力欄を追加</button>
+
+<h2>ペイロード</h2>
+<button onclick="generatePayload()">ペイロード生成</button>
+
+<pre id="result"></pre>
+
+<h2>送信</h2>
+<button onclick="sendMessage()">メッセージ送信</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+<script>
+    const jsonString = '{"blocks": [{"type": "section","text": {"type": "mrkdwn","text": "*{{title}}*"}},{"type": "divider"},{"type": "section","text": {"type": "mrkdwn","text": "{{message}}"}}]}';
+    const formattedJSON = formatJSON(jsonString);
+    document.getElementById('jsonTemplate').value = formattedJSON;
+
+    const addInputButton = document.getElementById('add-input');
+    const inputContainer = document.getElementById('input-container');
+    function createInputPair() {
+        const newInputPair = document.createElement('div');
+        newInputPair.className = 'input-pair';
+
+        const keyInput = document.createElement('input');
+        keyInput.type = 'text';
+        keyInput.className = 'key';
+        keyInput.placeholder = 'Key';
+
+        const valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'value';
+        valueInput.placeholder = 'Value';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '削除';
+        deleteButton.className = 'delete-button';
+        deleteButton.addEventListener('click', () => {
+            inputContainer.removeChild(newInputPair);
+            updateDeleteButtons();
+        });
+
+        newInputPair.appendChild(keyInput);
+        newInputPair.appendChild(valueInput);
+        newInputPair.appendChild(deleteButton);
+
+        return newInputPair;
+    }
+    addInputButton.addEventListener('click', () => {
+        const newInputPair = createInputPair();
+        inputContainer.appendChild(newInputPair);
+        updateDeleteButtons();
+    });
+    // 初期状態の削除ボタンを無効化
+    updateDeleteButtons();
+
+    async function generatePayload() {
+        const template = document.getElementById('jsonTemplate').value;
+        const values = getInputValues();
+        const data = {
+            template: template,
+            values: values,
+        };
+
+        const response = await fetch('/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const result = await response.text();
+            console.log(formatJSON(result));
+            document.getElementById('result').innerText = formatJSON(result);
+        } else {
+            alert('エラーが発生しました: ' + await response.text());
+        }
+    }
+
+    async function sendMessage() {
+        const webhookUrl = document.getElementById('webhookUrl').value;
+        const payload = document.getElementById('result').innerText;
+
+        const response = await fetch('/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ webhookUrl, payload })
+        });
+
+        if (response.ok) {
+            alert('メッセージが送信されました');
+        } else {
+            alert('エラーが発生しました: ' + await response.text());
+        }
+    }
+
+    function formatJSON(jsonString) {
+        const obj = JSON.parse(jsonString);
+        return JSON.stringify(obj, null, 4);
+    }
+
+    function getInputValues() {
+        const inputPairs = document.querySelectorAll('.input-pair');
+        const values = {};
+
+        inputPairs.forEach(pair => {
+            const key = pair.querySelector('.key').value;
+            const value = pair.querySelector('.value').value;
+            if (key && value) {
+                values[key] = value;
+            }
+        });
+
+        return values;
+    }
+    function updateDeleteButtons() {
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        if (deleteButtons.length === 1) {
+            deleteButtons[0].disabled = true;
+        } else {
+            deleteButtons.forEach(button => button.disabled = false);
+        }
+    }
+</script>
+</body>
+</html>

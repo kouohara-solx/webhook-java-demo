@@ -32,7 +32,14 @@
 
         .input-pair input {
             margin-right: 5px;
-            flex:2;
+        }
+        .key {
+            flex: 2;
+            margin-right: 5px;
+        }
+        .value {
+            flex: 2;
+            margin-right: 5px;
         }
 
         #add-input {
@@ -55,15 +62,6 @@
 
 <h2>変数設定</h2>
 <div id="input-container">
-    <div class="input-pair">
-        <label>
-            <input type="text" class="key" placeholder="Key">
-        </label>
-        <label>
-            <input type="text" class="value" placeholder="Value">
-        </label>
-        <button class="delete-button" disabled>削除</button>
-    </div>
 </div>
 <button id="add-input">入力欄を追加</button>
 
@@ -116,6 +114,8 @@
         updateDeleteButtons();
     });
     // 初期状態の削除ボタンを無効化
+    const newInputPair = createInputPair();
+    inputContainer.appendChild(newInputPair);
     updateDeleteButtons();
 
     async function generatePayload() {

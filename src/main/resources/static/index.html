@@ -48,16 +48,20 @@
 <h1>Webhook Caller</h1>
 
 <h2>Webhook URL</h2>
-<input type="text" id="webhookUrl" placeholder="https://hooks.slack.com/services/...">
+<label for="webhookUrl"></label><input type="text" id="webhookUrl" placeholder="https://hooks.slack.com/services/...">
 
 <h2>JSONテンプレート</h2>
-<textarea id="jsonTemplate"></textarea>
+<label for="jsonTemplate"></label><textarea id="jsonTemplate"></textarea>
 
 <h2>変数設定</h2>
 <div id="input-container">
     <div class="input-pair">
-        <input type="text" class="key" placeholder="Key">
-        <input type="text" class="value" placeholder="Value">
+        <label>
+            <input type="text" class="key" placeholder="Key">
+        </label>
+        <label>
+            <input type="text" class="value" placeholder="Value">
+        </label>
         <button class="delete-button" disabled>削除</button>
     </div>
 </div>
@@ -71,7 +75,6 @@
 <h2>送信</h2>
 <button onclick="sendMessage()">メッセージ送信</button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
 <script>
     const jsonString = '{"blocks": [{"type": "section","text": {"type": "mrkdwn","text": "*{{title}}*"}},{"type": "divider"},{"type": "section","text": {"type": "mrkdwn","text": "{{message}}"}}]}';
     const formattedJSON = formatJSON(jsonString);

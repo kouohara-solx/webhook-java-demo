@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -50,10 +49,9 @@ public class WebhookController {
      * メッセージを送信する
      * @param data メッセージデータ
      * @return メッセージ送信のステータス
-     * @throws UnsupportedEncodingException エンコードエラー
      */
     @PostMapping("/send")
-    public ResponseEntity<String> sendMessage(@RequestBody Map<String, String> data) throws UnsupportedEncodingException {
+    public ResponseEntity<String> sendMessage(@RequestBody Map<String, String> data) {
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         String webhookUrl = data.get("webhookUrl");
         String payload = data.get("payload");

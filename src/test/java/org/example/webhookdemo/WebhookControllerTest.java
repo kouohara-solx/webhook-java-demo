@@ -4,18 +4,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 public class WebhookControllerTest {
 
@@ -27,12 +25,16 @@ public class WebhookControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        try (AutoCloseable ignored = openMocks(this)) {
+            restTemplate = mock(RestTemplate.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         webhookController.setRestTemplate(restTemplate); // Ensure the mocked RestTemplate is used
     }
 
     @Test
-    void generatePayloadReturnsOkWithValidData() throws IOException {
+    void generatePayloadReturnsOkWithValidData() {
         Map<String, Object> data = new HashMap<>();
         data.put("template", "Hello {{name}}");
         Map<String, String> values = new HashMap<>();
@@ -45,7 +47,7 @@ public class WebhookControllerTest {
     }
 
     @Test
-    void generatePayloadReturnsBadRequestOnIOException() throws IOException {
+    void generatePayloadReturnsBadRequestOnIOException() {
         Map<String, Object> data = new HashMap<>();
         data.put("template", "{{#broken}}");
 
@@ -58,7 +60,7 @@ public class WebhookControllerTest {
     }
 
     @Test
-    void sendMessageReturnsOkWithValidData() throws UnsupportedEncodingException {
+    void sendMessageReturnsOkWithValidData() {
         Map<String, String> data = new HashMap<>();
         data.put("webhookUrl", "http://example.com/webhook");
         data.put("payload", "Test payload");
@@ -71,7 +73,7 @@ public class WebhookControllerTest {
     }
 
     @Test
-    void sendMessageReturnsBadRequestOnException() throws UnsupportedEncodingException {
+    void sendMessageReturnsBadRequestOnException() {
         Map<String, String> data = new HashMap<>();
         data.put("webhookUrl", "http://example.com/webhook");
         data.put("payload", "Test payload");
